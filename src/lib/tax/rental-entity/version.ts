@@ -1,0 +1,1 @@
+export const RENTAL_RATES_VERSION = "2026-10-17.1";

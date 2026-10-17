@@ -1,0 +1,1 @@
+export const LOAN_TO_OWNER_RATES_VERSION = "2026-1";

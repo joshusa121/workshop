@@ -1,0 +1,2 @@
+export const HOUSING_RATES_VERSION = "2026-10-17.1";
+export const HOUSING_CONFIRMED_AT = "2026-10-17";

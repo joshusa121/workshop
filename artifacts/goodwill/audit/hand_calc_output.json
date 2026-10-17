@@ -1,0 +1,76 @@
+{
+ "A1 순손익 감소 3억/2억/1억·자기자본 1억·타소득 0·법인 과표 3억": {
+  "weightedAvg": 233333333.33333334,
+  "excess": 106666666.66666667,
+  "goodwill": 404350588,
+  "otherIncomeAmount": 161740235,
+  "withholding": 35582840,
+  "comprehensiveExtra": 45046400,
+  "separateEligible": false,
+  "personalTax": 45046400,
+  "settlement": 9463560,
+  "amort": 80870117,
+  "annualSaving": 17791440,
+  "fiveYear": 88957200,
+  "net": 43910800
+ },
+ "A2a 소액(분리과세 유리)·타소득 8천만": {
+  "weightedAvg": 10000000.0,
+  "excess": 1900000.0,
+  "goodwill": 7202494,
+  "otherIncomeAmount": 2880997,
+  "withholding": 633800,
+  "comprehensiveExtra": 760570,
+  "separateEligible": true,
+  "personalTax": 633800,
+  "settlement": 0,
+  "amort": 1440498,
+  "annualSaving": 158460,
+  "fiveYear": 792300,
+  "net": 158500
+ },
+ "A2b 소액(종합과세 유리)·타소득 0": {
+  "weightedAvg": 10000000.0,
+  "excess": 1900000.0,
+  "goodwill": 7202494,
+  "otherIncomeAmount": 2880997,
+  "withholding": 633800,
+  "comprehensiveExtra": 91130,
+  "separateEligible": true,
+  "personalTax": 91130,
+  "settlement": -542670,
+  "amort": 1440498,
+  "annualSaving": 158460,
+  "fiveYear": 792300,
+  "net": 701170
+ },
+ "A3 법인 과표 200억 경계(20%→22%)": {
+  "weightedAvg": 2866666666.6666665,
+  "excess": 1333333333.3333333,
+  "goodwill": 5054382359,
+  "otherIncomeAmount": 2021752943,
+  "withholding": 444785630,
+  "comprehensiveExtra": 927491200,
+  "separateEligible": false,
+  "personalTax": 927491200,
+  "settlement": 482705570,
+  "amort": 1010876471,
+  "annualSaving": 233392830,
+  "fiveYear": 1166964150,
+  "net": 239472950
+ },
+ "B 300만 경계 양도대가 7,500,000·타소득 8천만": {
+  "otherIncomeAmount": 3000000,
+  "withholding": 660000,
+  "comprehensiveExtra": 792000,
+  "separateEligible": true,
+  "personalTax": 660000
+ },
+ "B 300만 경계 양도대가 7,500,003·타소득 8천만": {
+  "otherIncomeAmount": 3000001,
+  "withholding": 660000,
+  "comprehensiveExtra": 792000,
+  "separateEligible": false,
+  "personalTax": 792000
+ }
+}

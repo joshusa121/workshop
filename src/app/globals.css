@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --canvas: #f4efe6;
+  --ink: #161410;
+  --muted: #5c574e;
+  --line: #d4cdc0;
+  --line-strong: #161410;
+  --accent: #9a2a22;
+  --paper: #fbf7f0;
+  --ok: #2c5a3c;
+  --warn: #8a5a12;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-paper: var(--paper);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  background: var(--canvas);
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+
+.num {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+@media print {
+  :root {
+    --canvas: #ffffff;
+    --paper: #ffffff;
+  }
+  body {
+    background: #fff;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

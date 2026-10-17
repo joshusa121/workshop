@@ -1,0 +1,1 @@
+export const FAMILY_SUCCESSION_RATES_VERSION = "2026-1";
