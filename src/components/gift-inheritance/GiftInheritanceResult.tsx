@@ -6,6 +6,7 @@ import { BENEFICIARY_LABEL, type GiftInheritanceInput } from "@/lib/tax/gift-inh
 import { formatWon } from "@/lib/won";
 
 const NOT_COVERED = [
+  "500만원을 넘는 실제 장례비(1천만원까지)와 봉안·자연장지 비용(500만원까지)",
   "10년 이내 사전증여 합산과세(§13)",
   "부동산 시가·감정평가, 금융재산·동거주택·가업상속 공제",
   "신고세액공제, 연부연납, 물납",

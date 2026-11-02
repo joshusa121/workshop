@@ -66,6 +66,20 @@ export const SPOUSE_INHERITANCE_DEDUCTION: RateEntry<number> = {
   },
 };
 
+/** 장례비용 최소 공제 500만 (§14①2호, 시행령 §9②1호: 500만 미만이면 500만, 1천만 초과면 1천만) */
+export const FUNERAL_MIN_DEDUCTION: RateEntry<number> = {
+  value: 5_000_000,
+  basis: {
+    kind: "law",
+    law: "상속세 및 증여세법 시행령",
+    article: "제9조 제2항 제1호",
+    url: "https://www.law.go.kr/법령/상속세및증여세법시행령/제9조",
+    effectiveFrom: "2026-10-01",
+    appliesTo: "장례에 직접 든 금액이 500만원 미만이면 500만원으로 보아 상속세 과세가액에서 뺌(증빙 없어도 적용, 봉안·자연장지 비용 별도)",
+    confirmedAt: "2026-11-02",
+  },
+};
+
 /** 자녀 1인당 인적공제 5천만 (§20①) */
 export const CHILD_PERSONAL_DEDUCTION: RateEntry<number> = {
   value: 50_000_000,
