@@ -142,6 +142,12 @@ export const GENERATION_SKIP_RATE: RateEntry<number> = {
   },
 };
 
+/** 세대생략 할증 가중 (§57①단서): 수증자가 미성년자이고 증여재산가액이 20억원을 넘으면 40% */
+export const GENERATION_SKIP_MINOR_LARGE: RateEntry<{ over: number; rate: number }> = {
+  value: { over: 2_000_000_000, rate: 0.4 },
+  basis: GENERATION_SKIP_RATE.basis,
+};
+
 export const GIFT_BASIS: Basis = {
   kind: "law",
   law: "상속세 및 증여세법",

@@ -90,7 +90,9 @@ function sincereCredit(applies: boolean, cost: number): Traced {
   return traced(
     "성실신고확인비용 세액공제",
     value,
-    [`확인비용 ${cost.toLocaleString("ko-KR")}원 × 60% = ${floorWon(cost * 0.6).toLocaleString("ko-KR")}원, 한도 120만원 적용`],
+    [
+      `확인비용 ${cost.toLocaleString("ko-KR")}원 × ${Math.round(SINCERE_CONFIRM_CREDIT_RATE.value * 100)}% = ${floorWon(cost * SINCERE_CONFIRM_CREDIT_RATE.value).toLocaleString("ko-KR")}원, 한도 ${SINCERE_CONFIRM_CAP_INDIV.value / 10_000}만원 적용`,
+    ],
     [SINCERE_CONFIRM_CREDIT_RATE.basis, SINCERE_CONFIRM_CAP_INDIV.basis],
   );
 }

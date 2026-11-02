@@ -12,26 +12,31 @@ function total(label: string, parts: Traced[]): Traced {
   return traced(label, parts.reduce((s, t) => s + t.value, 0), parts.length ? parts.map(t => `${t.label}: ${t.value.toLocaleString("ko-KR")}원`) : ["기준일에 보유한 주택이 없어 0원"], parts.length ? [...new Set(parts.flatMap(t => t.basis))] : [R.INPUT_BASIS, R.ESTIMATE_BASIS]);
 }
 const pct = (v: number) => `${Number((v * 100).toFixed(4))}%`;
+const eok = (won: number) => `${won / 100_000_000}억`;
 
 export function computeHousing(input: HousingInput) {
   const errors = validateInput(input);
   if (errors.length) throw new Error(errors.join(" "));
   const { purchasePrice: price, acquisitionHomes: count } = input;
   const surcharge = !input.temporaryTwo && ((input.regulated && count >= 2) || (!input.regulated && count >= 3));
+  const A = R.ACQUISITION_RATES.value;
+  const S = R.SURCHARGE_RATES.value;
+  // 중간 구간: (취득가액 × multiplier ÷ divisor − minusPercent)%를 % 소수 넷째자리(비율 소수 여섯째자리)까지 반올림. 정수 연산으로 부동소수 오차를 피한다.
+  const middleRate = (p: number) => Math.round((p * A.middle.multiplier - A.middle.minusPercent * A.middle.divisor) / (A.middle.divisor / 10_000)) / 1_000_000;
   const acquisitionRate = surcharge
-    ? ((input.regulated && count >= 3) || count >= 4 ? .12 : .08)
-    : price <= 600_000_000 ? .01 : price <= 900_000_000 ? Math.round((price * 2 - 900_000_000) / 30_000) / 1_000_000 : .03;
+    ? ((input.regulated && count >= 3) || count >= 4 ? S.high : S.mid)
+    : price <= A.lowUpTo ? A.lowRate : price <= A.highFrom ? middleRate(price) : A.highRate;
   const acquisitionBasis = [surcharge ? R.SURCHARGE_BASIS : R.ACQUISITION_BASIS, R.INPUT_BASIS, ...(input.temporaryTwo ? [R.TEMPORARY_BASIS] : [])];
   const acquisitionTax = amount("취득세", floorTenWon(price * acquisitionRate), `${price.toLocaleString("ko-KR")}원 × ${pct(acquisitionRate)} → 10원 미만 버림`, [...acquisitionBasis, R.ROUND_BASIS]);
-  const educationRate = surcharge ? .004 : acquisitionRate * .1;
+  const educationRate = surcharge ? R.EDUCATION_RATES.value.surchargeRate : acquisitionRate * R.EDUCATION_RATES.value.acquisitionShare;
   const acquisitionEducation = amount("취득 지방교육세", floorTenWon(price * educationRate), `취득가액 × ${pct(educationRate)} → 10원 미만 버림`, [R.EDUCATION_BASIS, R.ROUND_BASIS]);
   // §5①6: 표준 2% + 중과기준세율 2%×200/400%에 농특세율 10% 적용.
-  const ruralRate = input.ruralExempt ? 0 : surcharge ? acquisitionRate === .08 ? .006 : .01 : .002;
+  const ruralRate = input.ruralExempt ? 0 : surcharge ? acquisitionRate === S.mid ? R.RURAL_RATES.value.surchargeMid : R.RURAL_RATES.value.surchargeHigh : R.RURAL_RATES.value.general;
   const acquisitionRural = amount("취득 농어촌특별세", floorTenWon(price * ruralRate), input.ruralExempt ? "서민주택 비과세 요건 충족으로 입력 → 0원" : `취득가액 × ${pct(ruralRate)} → 10원 미만 버림`, [R.RURAL_BASIS, R.RURAL_EXEMPT_BASIS, R.INPUT_BASIS, R.ROUND_BASIS]);
   const acquisition = {
     count: amount("취득 직후 세대 주택 수", count, "사용자 입력. 취득세 주택 수 산정 및 제외 여부는 Josh 감수 필요", [R.INPUT_BASIS, R.SURCHARGE_BASIS]),
     price: amount("취득가액", price, "사용자가 입력한 유상취득 과세표준. 지분취득 제외", [R.INPUT_BASIS]),
-    rate: amount("취득세율", acquisitionRate, surcharge ? `세대 ${count}주택·${input.regulated ? "조정" : "비조정"}지역 중과 ${pct(acquisitionRate)}` : "6억 이하 1%, 6억 초과 9억 이하 (취득가액/3억×2−3)%. % 단위 소수 넷째자리까지 반올림. 9억 초과 3%", acquisitionBasis),
+    rate: amount("취득세율", acquisitionRate, surcharge ? `세대 ${count}주택·${input.regulated ? "조정" : "비조정"}지역 중과 ${pct(acquisitionRate)}` : `${eok(A.lowUpTo)} 이하 ${pct(A.lowRate)}, ${eok(A.lowUpTo)} 초과 ${eok(A.highFrom)} 이하 (취득가액/${eok(A.middle.divisor)}×${A.middle.multiplier}−${A.middle.minusPercent})%. % 단위 소수 넷째자리까지 반올림. ${eok(A.highFrom)} 초과 ${pct(A.highRate)}`, acquisitionBasis),
     tax: acquisitionTax, education: acquisitionEducation, rural: acquisitionRural,
     total: total("취득 시 일회성 세금", [acquisitionTax, acquisitionEducation, acquisitionRural]),
   };
@@ -39,13 +44,13 @@ export function computeHousing(input: HousingInput) {
   const properties = input.homes.map((home, index) => {
     const ratio = input.householdSingle ? R.PROPERTY_RATIOS.value.single.find(b => b.upTo === null || home.publicValue <= b.upTo)!.ratio : R.PROPERTY_RATIOS.value.general;
     const base = floorWon(home.publicValue * ratio);
-    const special = input.householdSingle && home.publicValue <= 900_000_000;
+    const special = input.householdSingle && home.publicValue <= R.PROPERTY_SINGLE_LIMIT.value;
     const table = special ? R.PROPERTY_SINGLE_BRACKETS : R.PROPERTY_BRACKETS;
     const tax = applyBrackets(base, table, `주택 ${index + 1} 재산세 본세`, floorTenWon);
     tax.steps.push("과세표준상한·조례 감면 미반영, 연간 본세에서 10원 미만 버림");
     tax.basis.push(R.ROUND_BASIS, R.ESTIMATE_BASIS);
     const urban = amount("도시지역분", home.urban ? floorTenWon(base * R.URBAN_RATE.value) : 0, home.urban ? `과표 ${base.toLocaleString("ko-KR")}원 × ${pct(R.URBAN_RATE.value)}` : "도시지역분 비대상으로 입력 → 0원", [R.URBAN_RATE.basis, R.INPUT_BASIS, R.ROUND_BASIS]);
-    const education = amount("재산 지방교육세", floorTenWon(tax.value * .2), "재산세 본세 × 20%, 도시지역분 제외. 10원 미만 버림", [R.EDUCATION_BASIS, R.ROUND_BASIS]);
+    const education = amount("재산 지방교육세", floorTenWon(tax.value * R.EDUCATION_RATES.value.propertyShare), `재산세 본세 × ${pct(R.EDUCATION_RATES.value.propertyShare)}, 도시지역분 제외. 10원 미만 버림`, [R.EDUCATION_BASIS, R.ROUND_BASIS]);
     return {
       publicValue: amount("주택 공시가격", home.publicValue, "사용자 입력: 2026년 과세기준일 보유주택의 전체 공시가격", [R.INPUT_BASIS]),
       ratio: amount("재산세 공정시장가액비율", ratio, input.householdSingle ? "1세대 1주택: 공시 3억 이하 43%, 6억 이하 44%, 초과 45%" : "일반주택 60%", [R.PROPERTY_RATIOS.basis, R.PROPERTY_SINGLE_BASIS]),
@@ -69,7 +74,7 @@ export function computeHousing(input: HousingInput) {
   const creditRate = Math.min(R.PERSONAL_CREDIT.value.cap, ageRate + holdRate);
   const personalCredit = floorWon((gross.value - propertyCredit) * creditRate);
   const comprehensiveTax = amount("종합부동산세 (상한 전)", floorTenWon(gross.value - propertyCredit - personalCredit), "산출세액 − 재산세 중복분 공제 − 고령·장기보유 공제 → 10원 미만 버림. 세부담상한 미반영", [R.COMPREHENSIVE_BRACKETS.basis, R.PROPERTY_CREDIT_BASIS, R.PERSONAL_CREDIT.basis, R.ROUND_BASIS]);
-  const comprehensiveRural = amount("종부 농어촌특별세", floorTenWon(comprehensiveTax.value * .2), "종부세 × 20% → 10원 미만 버림. 종부세 상한 미반영에 따른 추정액", [R.RURAL_BASIS, R.ROUND_BASIS]);
+  const comprehensiveRural = amount("종부 농어촌특별세", floorTenWon(comprehensiveTax.value * R.RURAL_RATES.value.comprehensiveShare), `종부세 × ${pct(R.RURAL_RATES.value.comprehensiveShare)} → 10원 미만 버림. 종부세 상한 미반영에 따른 추정액`, [R.RURAL_BASIS, R.ROUND_BASIS]);
   const comprehensive = {
     age: amount("과세기준일 만 나이", input.age, "사용자가 입력한 2026년 6월 1일의 만 나이", [R.INPUT_BASIS, R.PERSONAL_CREDIT.basis]),
     holdingYears: amount("과세기준일 보유연수", input.holdingYears, "사용자가 입력한 과세기준일까지 채운 보유연수. 특례 기산은 Josh 감수 필요", [R.INPUT_BASIS, R.PERSONAL_CREDIT.basis]),

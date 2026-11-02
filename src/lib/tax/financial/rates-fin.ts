@@ -1,4 +1,4 @@
-import type { RateEntry } from "../rates";
+import type { Bracket, RateEntry } from "../rates";
 import type { Basis } from "../sources";
 
 const CONFIRMED = "2026-10-16";
@@ -29,6 +29,17 @@ export const STOCK_RATE_BASIS: Basis = {
   appliesTo:
     "대주주: 3억 이하 20% / 초과 25%(1년 미만·중소기업 외 30%). 비대주주: 중소기업 10% / 그 외 20%",
   confirmedAt: CONFIRMED,
+};
+
+/** 주식 양도소득세율 (소득세법 §104①11호) */
+export const STOCK_RATES: RateEntry<{ majorShortNonSme: number; majorBrackets: Bracket[]; minorSme: number; minorOther: number }> = {
+  value: {
+    majorShortNonSme: 0.3,
+    majorBrackets: [{ upTo: 300_000_000, rate: 0.2 }, { upTo: null, rate: 0.25 }],
+    minorSme: 0.1,
+    minorOther: 0.2,
+  },
+  basis: STOCK_RATE_BASIS,
 };
 
 export const FINANCIAL_THRESHOLD_BASIS: Basis = {

@@ -67,6 +67,8 @@ describe("종합소득세 엔진 — 손계산 fixture", () => {
     expect(r.taxBase.value).toBe(198_500_000);
     expect(r.calcTax.value).toBe(55_490_000);
     expect(r.credits.sincere.value).toBe(1_200_000);
+    // 설명 문구도 rates 값에서 만든다(숫자를 직접 적지 않음)
+    expect(r.credits.sincere.steps).toEqual(["확인비용 2,000,000원 × 60% = 1,200,000원, 한도 120만원 적용"]);
     expect(r.determinedTax.value).toBe(54_220_000);
   });
 

@@ -27,6 +27,25 @@ export const URBAN_RATE: RateEntry<number> = { value: .0014, basis: law("지방�
 export const EDUCATION_BASIS = law("지방세법", "제151조 제1항 제1호·제6호", "2026-01-01", "일반취득은 취득세율의 10%, 중과취득은 취득가액의 0.4%. 재산세 본세의 20%(도시지역분 제외)");
 export const RURAL_BASIS = law("농어촌특별세법", "제5조 제1항 제6호·제8호", "2026-05-12", "취득 표준세율을 2%로 적용한 세액의 10%, 납부 종부세의 20%");
 export const RURAL_EXEMPT_BASIS = law("농어촌특별세법 시행령", "제4조 제5항", "2026-01-02", "국민주택규모 이하 주거용 건물 및 기준면적 내 부수토지. 법 제4조 제11호 비과세 요건은 사용자 확인");
+/** 일반주택 유상취득 세율(§11①8호): 6억 이하 1%, 9억 초과 3%, 그 사이는 (취득가액 × 2/3억 − 3)%를 % 소수 넷째자리 반올림 */
+export const ACQUISITION_RATES: RateEntry<{ lowUpTo: number; lowRate: number; highFrom: number; highRate: number; middle: { multiplier: number; divisor: number; minusPercent: number } }> = {
+  value: { lowUpTo: 600_000_000, lowRate: .01, highFrom: 900_000_000, highRate: .03, middle: { multiplier: 2, divisor: 300_000_000, minusPercent: 3 } },
+  basis: ACQUISITION_BASIS,
+};
+/** 다주택 중과(§13의2①): 조정 2주택·비조정 3주택 8%, 조정 3주택 이상·비조정 4주택 이상 12% */
+export const SURCHARGE_RATES: RateEntry<{ mid: number; high: number }> = { value: { mid: .08, high: .12 }, basis: SURCHARGE_BASIS };
+/** 지방교육세(§151①1호·6호): 일반취득은 취득세율의 10%, 중과취득은 취득가액의 0.4%, 재산세 본세의 20% */
+export const EDUCATION_RATES: RateEntry<{ acquisitionShare: number; surchargeRate: number; propertyShare: number }> = {
+  value: { acquisitionShare: .1, surchargeRate: .004, propertyShare: .2 },
+  basis: EDUCATION_BASIS,
+};
+/** 농어촌특별세(농특세법 §5①6호·8호): 일반취득 0.2%, 중과 8%는 0.6%, 중과 12%는 1%, 종부세의 20% */
+export const RURAL_RATES: RateEntry<{ general: number; surchargeMid: number; surchargeHigh: number; comprehensiveShare: number }> = {
+  value: { general: .002, surchargeMid: .006, surchargeHigh: .01, comprehensiveShare: .2 },
+  basis: RURAL_BASIS,
+};
+/** 1세대 1주택 재산세 특례세율 적용 공시가격 상한(지방세법 §111의2) */
+export const PROPERTY_SINGLE_LIMIT: RateEntry<number> = { value: 900_000_000, basis: PROPERTY_SINGLE_BRACKETS.basis };
 export const COMPREHENSIVE_DEDUCTION: RateEntry<{ single: number; general: number }> = {
   value: { single: 1_200_000_000, general: 900_000_000 }, basis: law("종합부동산세법", "제8조 제1항", "2026-01-01", "개인별 합산. 단순 1세대 1주택 12억, 일반 개인 9억"),
 };

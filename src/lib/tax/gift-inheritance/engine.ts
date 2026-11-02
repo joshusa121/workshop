@@ -5,6 +5,7 @@ import {
   BASIC_DEDUCTION_INHERITANCE,
   CHILD_PERSONAL_DEDUCTION,
   FUNERAL_MIN_DEDUCTION,
+  GENERATION_SKIP_MINOR_LARGE,
   GENERATION_SKIP_RATE,
   GIFT_BASIS,
   GIFT_DEDUCTION,
@@ -55,7 +56,8 @@ export function computeGiftTax(amount: number, beneficiary: Beneficiary, minor =
   }
   const before = applyBrackets(taxBase, INHERITANCE_GIFT_BRACKETS, "증여세 산출세액", floorWon).value;
   const skip = beneficiary === "grandchild";
-  const ratio = skip ? (minor && amount > 2_000_000_000 ? 0.4 : GENERATION_SKIP_RATE.value) : 0;
+  const heavy = GENERATION_SKIP_MINOR_LARGE.value;
+  const ratio = skip ? (minor && amount > heavy.over ? heavy.rate : GENERATION_SKIP_RATE.value) : 0;
   const surcharge = floorWon(before * ratio);
   return { deduction, taxBase, taxBeforeSurcharge: before, surcharge, tax: before + surcharge };
 }

@@ -9,6 +9,7 @@ import {
   LOCAL_TAX_RATE,
   STOCK_BASIC_DEDUCTION,
   STOCK_RATE_BASIS,
+  STOCK_RATES,
   WITHHOLDING_RATE,
 } from "./rates-fin";
 import { normalizeFinancial, type FinancialInput } from "./input";
@@ -129,13 +130,16 @@ export function computeFinancial(input: FinancialInput): FinancialResult {
 
 function stockTax(holder: "major" | "minor", smallCap: boolean, heldUnder1y: boolean, base: number): { tax: number; rateLabel: string } {
   if (base <= 0) return { tax: 0, rateLabel: "과세표준 없음" };
+  const r = STOCK_RATES.value;
+  const pct = (v: number) => `${Math.round(v * 1000) / 10}%`;
   if (holder === "major") {
     if (heldUnder1y && !smallCap) {
-      return { tax: floorWon(base * 0.3), rateLabel: "대주주·1년 미만·중소기업 외 30%" };
+      return { tax: floorWon(base * r.majorShortNonSme), rateLabel: `대주주·1년 미만·중소기업 외 ${pct(r.majorShortNonSme)}` };
     }
-    const tax = applyBrackets(base, { value: [{ upTo: 300_000_000, rate: 0.2 }, { upTo: null, rate: 0.25 }], basis: STOCK_RATE_BASIS }, "주식 양도", floorWon).value;
-    return { tax, rateLabel: "대주주 3억 이하 20% / 초과 25%" };
+    const tax = applyBrackets(base, { value: r.majorBrackets, basis: STOCK_RATES.basis }, "주식 양도", floorWon).value;
+    const [low, high] = r.majorBrackets;
+    return { tax, rateLabel: `대주주 ${(low.upTo ?? 0) / 100_000_000}억 이하 ${pct(low.rate)} / 초과 ${pct(high.rate)}` };
   }
-  if (smallCap) return { tax: floorWon(base * 0.1), rateLabel: "비대주주·중소기업 10%" };
-  return { tax: floorWon(base * 0.2), rateLabel: "비대주주 20%" };
+  if (smallCap) return { tax: floorWon(base * r.minorSme), rateLabel: `비대주주·중소기업 ${pct(r.minorSme)}` };
+  return { tax: floorWon(base * r.minorOther), rateLabel: `비대주주 ${pct(r.minorOther)}` };
 }
