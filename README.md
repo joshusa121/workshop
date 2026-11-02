@@ -45,19 +45,18 @@
 
 - **법령 값은 원문으로만 넣습니다.** 세율·기준금액·공제율은 법제처 국가법령정보센터 원문으로 확인한 값만 코드에 들어갑니다. 코드의 모든 값에는 조문과 확인일이 붙어 있고, 빠지면 테스트가 실패합니다.
 - **숫자마다 근거를 볼 수 있습니다.** 화면의 밑줄 친 숫자를 누르면 계산 과정과 근거 조문, 또는 "가정"이라는 표시가 나옵니다.
-- **세 번 확인합니다.** 원문 대조, 엔진과 독립된 손계산, 홈택스·4대보험·건강보험공단 공식 계산기 실측 대조를 거칩니다.
+- **여러 번 확인합니다.** 모든 제품은 원문 대조와 엔진과 독립된 손계산을 거칩니다. 공식 계산기가 있는 경우 실측 대조까지 합니다. 지금은 1화(홈택스 퇴직·근로소득, 4대보험, 건강보험공단)와 3화(홈택스 양도소득세)가 실측 대조를 마쳤습니다. 나머지 제품은 공식 계산기가 없거나 아직 대조하지 못했고, 그 사실을 각 제품 감사 문서에 적어 두었습니다.
 - **가정은 가정이라고 씁니다.** 기장료처럼 법령이 아닌 값은 "전제"로 따로 모아 보여 주고, 사용자가 고칠 수 있습니다. 계산하지 않는 항목은 화면의 "다루지 않는 것" 목록에 적습니다.
 
-근거 문서는 `docs/verified/`에 있습니다.
+근거 문서는 `docs/verified/`에 있습니다. 파일 이름 앞부분은 제품 경로와 같습니다(예: `retirement-facts.md`는 9화). 예외로 1화는 접두어가 없고, 3화는 `cgt-`, 4화는 `comp-income-`을 씁니다.
 
 | 문서 | 내용 |
 |---|---|
-| `2026-tax-facts.md`, `2026-09-26-interview-facts.md` | 1화 법령 값 원문 대조 |
-| `goodwill-facts.md` | 2화 법령 값 원문 대조 |
-| `cgt-facts.md` | 3화 법령 값 원문 대조 |
-| `hand-calc-fixtures.md`, `goodwill-hand-calc-fixtures.md`, `cgt-hand-calc-fixtures.md` | 손계산 사례. 모두 테스트로 고정돼 있습니다. |
-| `manual-cross-check.md`, `cgt-cross-check.md` | 공식 계산기 실측 대조 |
-| `cgt-final-audit.md` | 3화 최종 감사와 남은 리스크 |
+| `<제품>-facts.md` | 법령 값 원문 대조. 1화는 `2026-tax-facts.md`, `2026-09-26-interview-facts.md`, 8화는 손계산 문서 안에 함께 적었습니다. |
+| `<제품>-hand-calc-fixtures.md` | 손계산 사례. 모두 테스트로 고정돼 있습니다. 1화는 `hand-calc-fixtures.md` |
+| `<제품>-final-audit.md` | 최종 감사와 남은 리스크. 1화는 `final-audit.md`. 5·6·7·8화는 손계산 문서 안에 함께 적었습니다. |
+| `manual-cross-check.md`, `cgt-cross-check.md` | 공식 계산기 실측 대조(1화, 3화) |
+| `review-sheet-2026-10-17.md` | 21편 대표 입력의 계산 결과 감수 시트. 화면은 `/review` |
 | `plain-terms.md` | 화면 문구 원칙: 쉬운 용어 대응표와 「~합니다」체 규칙 |
 
 ## 실행
@@ -76,15 +75,20 @@ Next.js 16 App Router, React 19, Tailwind CSS 4, Vitest를 씁니다. 외부 서
 ## 구조
 
 ```
-src/lib/tax/            1화 계산 엔진, 공통 세율(rates.ts)·근거(sources.ts)·누진세 계산
-src/lib/tax/goodwill/   2화 계산 엔진
-src/lib/tax/cgt/        3화 계산 엔진
-src/components/         제품별 화면
-__tests__/              테스트
-docs/verified/          법령 원문 대조·손계산·공식 계산기 대조 문서
+src/lib/tax/              1화 계산 엔진, 공통 세율(rates.ts)·근거(sources.ts)·누진세 계산
+src/lib/tax/conversion/   1화 전환 방법·비용·회수기간·성실신고 판정
+src/lib/tax/goodwill/     2화 계산 엔진
+src/lib/tax/<제품>/        3~21화 계산 엔진. 폴더 이름은 제품 경로와 같고, 3화는 cgt/, 4화는 comp-income/
+                          각 폴더에 engine.ts(계산, 3화는 cgt.ts)·rates*.ts(법령 값)·input.ts(입력 정리)·share.ts(공유 링크)·version.ts(세율 버전)
+src/lib/catalog.ts        21편 목록과 제품별 세율 버전
+src/app/tools/<경로>/      제품별 페이지와 인쇄용 검토보고서(report/)
+src/app/review/           감수 시트 화면
+src/components/           제품별 화면 구성 요소
+__tests__/                테스트
+docs/verified/            법령 원문 대조·손계산·공식 계산기 대조·감사 문서
 ```
 
-세율을 고치면 해당 제품의 세율 버전도 올려야 합니다. 1화는 `sources.ts`의 `RATES_VERSION`, 2화는 `goodwill/facts.ts`, 3화는 `cgt/version.ts`에 있습니다. 올리지 않으면 테스트가 실패하고, 올리면 예전 공유 링크를 연 사람에게 "세법 개정으로 결과가 달라질 수 있음" 안내가 나옵니다.
+세율을 고치면 해당 제품의 세율 버전도 올려야 합니다. 1화는 `sources.ts`의 `RATES_VERSION`, 2화는 `goodwill/facts.ts`의 `GOODWILL_RATES_VERSION`, 3~21화는 각 폴더의 `version.ts`에 있습니다. 버전을 올리면 예전 공유 링크를 연 사람에게 "세법 개정으로 결과가 달라질 수 있음" 안내가 나옵니다. 값만 바꾸고 버전을 올리지 않았을 때 테스트가 실패하는 것은 지금은 2화·3화뿐입니다. 나머지 제품은 직접 올려야 합니다.
 
 ## 기여
 
