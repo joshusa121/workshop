@@ -17,11 +17,14 @@ const NOT_COVERED = [
 function ScenarioCard({ s, best }: { s: Scenario; best: boolean }) {
   return (
     <div className={`border p-4 ${best ? "border-ink" : "border-line"}`}>
-      <div className="flex items-baseline justify-between">
-        <p className="text-sm">{s.label}</p>
-        {best && <span className="bg-ink px-1.5 py-0.5 text-[10px] text-canvas">유리</span>}
+      {/* 금액이 수백억(15자 이상)이어도 넘치지 않도록 한 줄에 나란히 두고, 좁으면 금액을 다음 줄로 내린다 */}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+        <p className="flex items-center gap-2 text-sm">
+          {s.label}
+          {best && <span className="bg-ink px-1.5 py-0.5 text-[10px] text-canvas">유리</span>}
+        </p>
+        <p className="num min-w-0 text-2xl [overflow-wrap:anywhere]">{formatWon(s.total)}</p>
       </div>
-      <p className="num mt-3 text-2xl">{formatWon(s.total)}</p>
       <ul className="mt-3 space-y-1 text-xs text-muted">
         {s.giftTax.value > 0 && <li>증여세 {formatWon(s.giftTax.value)}</li>}
         {s.inheritanceTax.value > 0 && <li>상속세 {formatWon(s.inheritanceTax.value)}</li>}
@@ -53,7 +56,7 @@ export function GiftInheritanceResult({ input, result: r }: { input: GiftInherit
 
       <section className="mt-10">
         <h2 className="text-xl">세 가지 방법 비교</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <div className="mt-4 grid gap-3">
           <ScenarioCard s={r.inherit} best={r.recommend === "inherit"} />
           <ScenarioCard s={r.giftAll} best={r.recommend === "giftAll"} />
           <ScenarioCard s={r.split} best={r.recommend === "split"} />
